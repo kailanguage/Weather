@@ -24,7 +24,7 @@ public class WeatherWebService {
                     String strUrl= "http://t.weather.sojson.com/api/weather/city/"+cityCode;
                     Request request=new Request.Builder().url(strUrl).build();
                     Response response=okHttpClient.newCall(request).execute();
-                    Log.e("xxxx",strUrl);
+                    Log.e("API_URL",strUrl);
                     String responseData=response.body().string();
                     parseJSONWithGSON(responseData);
                 } catch (Exception e) {
@@ -37,7 +37,7 @@ public class WeatherWebService {
     private void parseJSONWithGSON(String jsonData) {
         Gson gson = new Gson();
         WeatherJSON weatherJSON =gson.fromJson(jsonData,WeatherJSON.class);
-        Log.e("xxxx",weatherJSON.getStatus()+"");
+        Log.e("weatherJSON_getStatus",weatherJSON.getStatus()+"");
         weatherJSONMutableLiveData.postValue(weatherJSON);
     }
 

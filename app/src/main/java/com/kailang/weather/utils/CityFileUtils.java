@@ -1,4 +1,4 @@
-package com.kailang.weather;
+package com.kailang.weather.utils;
 
 import android.content.Context;
 import android.content.res.AssetManager;
