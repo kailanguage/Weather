@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -58,7 +59,6 @@ public class WeatherFragment extends Fragment {
     private RecyclerView recyclerView;
     private WeatherAdapter myAdapter;
     private WeatherJSON weatherNow;
-
 
 
     private TextView city, updateTime, shidu, pm25, pm10, quality, wendu, ganmao, high, low, week, ymd, aqi, fx, fl, type, notice;
@@ -105,7 +105,7 @@ public class WeatherFragment extends Fragment {
                                 public void run() {
                                     //定位完成之后更新数据
                                     CityPicker.from(getActivity())
-                                            .locateComplete(new LocatedCity("朝阳区", "北京", "101060110"), LocateState.SUCCESS);
+                                            .locateComplete(new LocatedCity("朝阳区", "北京", "101010300"), LocateState.SUCCESS);
                                 }
                             }, 3000);
                         }
@@ -156,9 +156,9 @@ public class WeatherFragment extends Fragment {
             @Override
             public void onRefresh() {
                 String cityCode = weatherViewModel.getCityCode();
-                if (cityCode==null||cityCode.isEmpty()) {
+                if (cityCode == null || cityCode.isEmpty()) {
                     weatherViewModel.setCityCode("101010300");
-                    cityCode="101010300";
+                    cityCode = "101010300";
                     swipeRefreshLayout.setRefreshing(false);
                 }
                 weatherViewModel.setCityCode(cityCode);
@@ -174,6 +174,7 @@ public class WeatherFragment extends Fragment {
             @Override
             public void onChanged(List<Weather> weathers) {
                 weatherList = weathers;
+                Log.e("weatherList", weatherList.size() + "");
             }
         });
 
@@ -183,20 +184,22 @@ public class WeatherFragment extends Fragment {
                 if (weatherJSON != null) {
                     setDataView(weatherJSON);
                     //更新数据信息
-                    Gson gson= new Gson();
-                    String cityCode=weatherJSON.getCityInfo().getCitykey();
-                    Weather weather = new Weather(cityCode,DateUtils.dateToLong(weatherJSON.getTime()),gson.toJson(weatherJSON));
-                    if(weatherList!=null) {
-                        for(Weather w:weatherList){
-                            Log.e("weatherListCityID",w.getCityID());
-                            if(w.getCityID().equals(cityCode)){
+                    Gson gson = new Gson();
+                    String cityCode = weatherJSON.getCityInfo().getCitykey();
+                    Weather weather = new Weather(cityCode, DateUtils.dateToLong(weatherJSON.getTime()), gson.toJson(weatherJSON));
+                    if (weatherList != null) {
+                        for (Weather w : weatherList) {
+                            Log.e("weatherListCityID", w.getCityID());
+                            if (w.getCityID().equals(cityCode)) {
                                 weatherViewModel.updateWeather(weather);
-                                Log.e("getWeatherJSONLiveData","更新天气数据");
+                                Log.e("getWeatherJSONLiveData", "更新天气数据");
+                                Toast.makeText(getContext(), "更新天气数据", Toast.LENGTH_SHORT).show();
                                 return;
                             }
                         }
                         weatherViewModel.insertWeather(weather);
-                        Log.e("getWeatherJSONLiveData","插入天气数据");
+                        Log.e("getWeatherJSONLiveData", "插入天气数据");
+                        Toast.makeText(getContext(), "插入天气数据", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -208,10 +211,10 @@ public class WeatherFragment extends Fragment {
         weatherViewModel.getCityCodeLive().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                Log.e("getCityCodeLive",s);
+                Log.e("getCityCodeLive", s);
                 //获取当前日历时间，并倒退30分钟
                 Calendar c = Calendar.getInstance();
-                c.add(Calendar.MINUTE,-30);
+                c.add(Calendar.MINUTE, -30);
                 if (s != null && !s.isEmpty()) {
                     Gson gson = new Gson();
                     if (weatherList != null && !weatherList.isEmpty()) {
@@ -224,12 +227,12 @@ public class WeatherFragment extends Fragment {
                                 if (c.getTimeInMillis() <= dateInDB) {
                                     setDataView(weatherNow);
                                     Log.e("cityCode_observe", "从数据库中获取数据");
-                                    Toast.makeText(getContext(),"从数据库中获取数据",Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "从数据库中获取数据", Toast.LENGTH_SHORT).show();
                                     return;
                                 } else {
                                     weatherViewModel.setWeatherWebService(s);
                                     Log.e("cityCode_observe", "从网络中获取数据");
-                                    Toast.makeText(getContext(),"从网络中获取数据",Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "从网络中获取数据", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
@@ -242,6 +245,7 @@ public class WeatherFragment extends Fragment {
         });
 
     }
+
     //绑定控件
     private void initView() {
         city = getActivity().findViewById(R.id.textView_city);
@@ -263,11 +267,10 @@ public class WeatherFragment extends Fragment {
         fl = getActivity().findViewById(R.id.textView_fl);
         type = getActivity().findViewById(R.id.textView_type);
         notice = getActivity().findViewById(R.id.textView_notice);
-
     }
 
     private void setDataView(WeatherJSON weatherJSON) {
-         List<WeatherJSON.DataBean.ForecastBean> weatherListForecast;
+        List<WeatherJSON.DataBean.ForecastBean> weatherListForecast;
         city.setText(weatherJSON.getCityInfo().getCity());
         updateTime.setText("更新时间:" + weatherJSON.getCityInfo().getUpdateTime());
         shidu.setText("湿度:" + weatherJSON.getData().getShidu());
@@ -283,11 +286,37 @@ public class WeatherFragment extends Fragment {
         fx.setText(weatherJSON.getData().getForecast().get(0).getFx());
         fl.setText(weatherJSON.getData().getForecast().get(0).getFl());
         type.setText(weatherJSON.getData().getForecast().get(0).getType());
+        setBackground(type.getText().toString());
         notice.setText(weatherJSON.getData().getForecast().get(0).getNotice());
 
         weatherListForecast = weatherJSON.getData().getForecast();
         myAdapter.setWeatherForecast(weatherListForecast);
         recyclerView.setAdapter(myAdapter);
+    }
+
+    //设置背景
+    private void setBackground(String str) {
+        Random random = new Random();
+        int a = random.nextInt(5);
+        switch (a) {
+            case 1:
+                swipeRefreshLayout.setBackground(getActivity().getDrawable(R.drawable.ic_background_a));
+                break;
+            case 2:
+                swipeRefreshLayout.setBackground(getActivity().getDrawable(R.drawable.ic_background_b));
+                break;
+            case 3:
+                swipeRefreshLayout.setBackground(getActivity().getDrawable(R.drawable.ic_background_c));
+                break;
+            case 4:
+                swipeRefreshLayout.setBackground(getActivity().getDrawable(R.drawable.ic_background_d));
+                break;
+            case 5:
+                swipeRefreshLayout.setBackground(getActivity().getDrawable(R.drawable.ic_background_e));
+                break;
+            default:
+                swipeRefreshLayout.setBackground(getActivity().getDrawable(R.drawable.ic_background_f));
+        }
     }
 
 

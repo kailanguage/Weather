@@ -13,7 +13,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginEnd="4dp"
         android:layout_marginBottom="4dp"
-        android:foreground="?selectableItemBackground"
+        android:background="@color/cardview_dark_background"
         app:cardCornerRadius="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout

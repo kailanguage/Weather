@@ -19,7 +19,6 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.MyViewHo
     private List<WeatherJSON.DataBean.ForecastBean> weatherListForecast=new ArrayList<>();
 
     public void setWeatherForecast(List<WeatherJSON.DataBean.ForecastBean> weatherListForecast) {
-        weatherListForecast.remove(0);
         this.weatherListForecast = weatherListForecast;
     }
 
