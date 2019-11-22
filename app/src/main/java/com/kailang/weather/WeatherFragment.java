@@ -174,7 +174,7 @@ public class WeatherFragment extends Fragment {
             @Override
             public void onChanged(List<Weather> weathers) {
                 weatherList = weathers;
-                Log.e("weatherList", weatherList.size() + "");
+                Log.e("weatherList", "数据库中缓存的城市数量："+weatherList.size());
             }
         });
 
@@ -189,7 +189,6 @@ public class WeatherFragment extends Fragment {
                     Weather weather = new Weather(cityCode, DateUtils.dateToLong(weatherJSON.getTime()), gson.toJson(weatherJSON));
                     if (weatherList != null) {
                         for (Weather w : weatherList) {
-                            Log.e("weatherListCityID", w.getCityID());
                             if (w.getCityID().equals(cityCode)) {
                                 weatherViewModel.updateWeather(weather);
                                 Log.e("getWeatherJSONLiveData", "更新天气数据");
@@ -243,7 +242,8 @@ public class WeatherFragment extends Fragment {
                 }
             }
         });
-
+        //默认为北京-朝阳区
+        weatherViewModel.setCityCode("101010300");
     }
 
     //绑定控件

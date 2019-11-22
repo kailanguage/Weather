@@ -37,8 +37,10 @@ public class WeatherWebService {
     private void parseJSONWithGSON(String jsonData) {
         Gson gson = new Gson();
         WeatherJSON weatherJSON =gson.fromJson(jsonData,WeatherJSON.class);
-        Log.e("weatherJSON_getStatus",weatherJSON.getStatus()+"");
-        weatherJSONMutableLiveData.postValue(weatherJSON);
+        if(weatherJSON.getStatus()==200) {
+            Log.e("weatherJSON_getStatus", weatherJSON.getStatus() + "");
+            weatherJSONMutableLiveData.postValue(weatherJSON);
+        }
     }
 
     public MutableLiveData<WeatherJSON> getWeatherJSONMutableLiveData() {
