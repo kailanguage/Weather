@@ -80,7 +80,7 @@ public class WeatherFragment extends Fragment {
 
             CityPicker.from(getActivity()) //activity或者fragment
                     .enableAnimation(true)    //启用动画效果，默认无
-                    .setLocatedCity(new LocatedCity("北京 朝阳区", "北京", "101060110"))  //APP自身已定位的城市，传null会自动定位（默认）
+                    .setLocatedCity(new LocatedCity("北京 朝阳区", "北京", "101010300"))  //APP自身已定位的城市，传null会自动定位（默认）
                     .setHotCities(hotCities)    //指定热门城市
                     .setOnPickListener(new OnPickListener() {
                         @Override
@@ -157,8 +157,8 @@ public class WeatherFragment extends Fragment {
             public void onRefresh() {
                 String cityCode = weatherViewModel.getCityCode();
                 if (cityCode==null||cityCode.isEmpty()) {
-                    weatherViewModel.setCityCode("101060110");
-                    cityCode="101060110";
+                    weatherViewModel.setCityCode("101010300");
+                    cityCode="101010300";
                     swipeRefreshLayout.setRefreshing(false);
                 }
                 weatherViewModel.setCityCode(cityCode);
@@ -174,7 +174,6 @@ public class WeatherFragment extends Fragment {
             @Override
             public void onChanged(List<Weather> weathers) {
                 weatherList = weathers;
-                Log.e("weatherList",weatherList.size()+"");
             }
         });
 
@@ -225,10 +224,12 @@ public class WeatherFragment extends Fragment {
                                 if (c.getTimeInMillis() <= dateInDB) {
                                     setDataView(weatherNow);
                                     Log.e("cityCode_observe", "从数据库中获取数据");
+                                    Toast.makeText(getContext(),"从数据库中获取数据",Toast.LENGTH_SHORT).show();
                                     return;
                                 } else {
                                     weatherViewModel.setWeatherWebService(s);
                                     Log.e("cityCode_observe", "从网络中获取数据");
+                                    Toast.makeText(getContext(),"从网络中获取数据",Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
