@@ -59,9 +59,10 @@ public class WeatherFragment extends Fragment {
     private RecyclerView recyclerView;
     private WeatherAdapter myAdapter;
     private WeatherJSON weatherNow;
+    private final int updateMinute=-30;  //设置数据库有效性为30分钟
 
 
-    private TextView city, updateTime, shidu, pm25, pm10, quality, wendu, ganmao, high, low, week, ymd, aqi, fx, fl, type, notice;
+    private TextView parent,city, updateTime, shidu, pm25, pm10, quality, wendu, ganmao, high, low, week, ymd, aqi, fx, fl, type, notice;
     private SwipeRefreshLayout swipeRefreshLayout;
 
     public WeatherFragment() {
@@ -122,7 +123,11 @@ public class WeatherFragment extends Fragment {
                     String tmp = input.getText().toString().trim();
                     try {
                         Integer.parseInt(tmp);
-                        weatherViewModel.setWeatherWebService(tmp);
+                        if(tmp.length()==9) {
+                            weatherViewModel.setWeatherWebService(tmp);
+                        }else{
+                            Toast.makeText(getContext(), "请输入合法的id", Toast.LENGTH_SHORT).show();
+                        }
                     } catch (Exception e) {
                         Toast.makeText(getContext(), "请输入合法的id", Toast.LENGTH_SHORT).show();
                     }
@@ -213,7 +218,7 @@ public class WeatherFragment extends Fragment {
                 Log.e("getCityCodeLive", s);
                 //获取当前日历时间，并倒退30分钟
                 Calendar c = Calendar.getInstance();
-                c.add(Calendar.MINUTE, -30);
+                c.add(Calendar.MINUTE, updateMinute);
                 if (s != null && !s.isEmpty()) {
                     Gson gson = new Gson();
                     if (weatherList != null && !weatherList.isEmpty()) {
@@ -248,6 +253,7 @@ public class WeatherFragment extends Fragment {
 
     //绑定控件
     private void initView() {
+        parent=getActivity().findViewById(R.id.textView_parent);
         city = getActivity().findViewById(R.id.textView_city);
         city.setFocusable(true);
         city.setFocusableInTouchMode(true);
@@ -271,6 +277,7 @@ public class WeatherFragment extends Fragment {
 
     private void setDataView(WeatherJSON weatherJSON) {
         List<WeatherJSON.DataBean.ForecastBean> weatherListForecast;
+        parent.setText(weatherJSON.getCityInfo().getParent());
         city.setText(weatherJSON.getCityInfo().getCity());
         updateTime.setText("更新时间:" + weatherJSON.getCityInfo().getUpdateTime());
         shidu.setText("湿度:" + weatherJSON.getData().getShidu());

@@ -267,6 +267,16 @@
                     app:layout_constraintStart_toEndOf="@+id/textView_quality"
                     app:layout_constraintTop_toTopOf="@+id/guideline5" />
 
+                <TextView
+                    android:id="@+id/textView_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="省"
+                    app:layout_constraintBottom_toTopOf="@+id/guideline"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline6"
+                    app:layout_constraintStart_toStartOf="@+id/guideline4"
+                    app:layout_constraintTop_toTopOf="parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <View
