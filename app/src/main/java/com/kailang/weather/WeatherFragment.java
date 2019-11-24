@@ -1,7 +1,9 @@
 package com.kailang.weather;
 
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,6 +14,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -25,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,16 +58,20 @@ import java.util.Random;
 public class WeatherFragment extends Fragment {
 
     private WeatherViewModel weatherViewModel;
-    private LiveData<List<City>> allCitiesLive;
     private List<Weather> weatherList;
+    private Weather weather;
     private List<City> cityList;
     private RecyclerView recyclerView;
     private WeatherAdapter myAdapter;
     private WeatherJSON weatherNow;
-    private final int updateMinute=-30;  //设置数据库有效性为30分钟
+    private LiveData<List<Weather>> allWeathersLive;
+    private LiveData<WeatherJSON> weatherJSONLiveData;
+    private LiveData<String> cityCode;
+    private final int updateMinute=-50;  //设置数据库有效性为30分钟
 
 
     private TextView parent,city, updateTime, shidu, pm25, pm10, quality, wendu, ganmao, high, low, week, ymd, aqi, fx, fl, type, notice;
+    private ImageView imageView_star;
     private SwipeRefreshLayout swipeRefreshLayout;
 
     public WeatherFragment() {
@@ -135,6 +144,10 @@ public class WeatherFragment extends Fragment {
             }).show();
 
         }
+        else if(item.getItemId()==R.id.app_bar_star_city){
+//            getActivity().getSupportFragmentManager().beginTransaction().add(WeatherFragment.this,"weather").addToBackStack(null).commit();
+            Navigation.findNavController(getActivity().getCurrentFocus()).navigate(R.id.action_weatherFragment_to_cityStarFragment);
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -154,8 +167,44 @@ public class WeatherFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        weatherViewModel = ViewModelProviders.of(this).get(WeatherViewModel.class);
+        weatherViewModel = ViewModelProviders.of(getActivity()).get(WeatherViewModel.class);
         initView();
+        initObserve();
+        initDate();
+
+    }
+
+
+    private void initDate() {
+        Bundle bundle=getArguments();
+        String cityID="";
+        if(bundle!=null)
+            cityID = bundle.getString("cityID");
+        if(cityID!=null&&!cityID.isEmpty())
+            weatherViewModel.setCityCode(cityID);
+        else{
+            //从shp中获取上次城市ID
+            SharedPreferences shp = requireActivity().getSharedPreferences("lastCityID", Context.MODE_PRIVATE);
+            cityID=shp.getString("last","101010300");
+            weatherViewModel.setCityCode(cityID);
+        }
+    }
+
+    //保存退出之前的城市ID
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        SharedPreferences shp = requireActivity().getSharedPreferences("lastCityID", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = shp.edit();
+        if(cityCode.getValue()!=null) {
+            editor.putString("last", cityCode.getValue());
+            Log.e("onDestroy",cityCode.getValue());
+            editor.commit();
+        }
+    }
+
+    //感知数据库
+    private void initObserve() {
         swipeRefreshLayout = requireActivity().findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -170,12 +219,32 @@ public class WeatherFragment extends Fragment {
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
+        imageView_star.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (weather!=null){
+                    if(weather.isStar()) {
+                        weather.setStar(false);
+                        weatherViewModel.updateWeather(weather);
+                        Toast.makeText(getContext(), "取消收藏", Toast.LENGTH_SHORT).show();
+                        imageView_star.setImageDrawable(getActivity().getDrawable(R.drawable.ic_star_border_black_24dp));
+                    }
+                    else {
+                        weather.setStar(true);
+                        weatherViewModel.updateWeather(weather);
+                        Toast.makeText(getContext(), "收藏成功", Toast.LENGTH_SHORT).show();
+                        imageView_star.setImageDrawable(getActivity().getDrawable(R.drawable.ic_star_black_24dp));
+                    }
+                }
+
+            }
+        });
         recyclerView = requireActivity().findViewById(R.id.recyclerView_weather);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         myAdapter = new WeatherAdapter();
 
-
-        weatherViewModel.getAllWeatherLive().observe(this, new Observer<List<Weather>>() {
+        allWeathersLive=weatherViewModel.getAllWeatherLive();
+        allWeathersLive.observe(getViewLifecycleOwner(), new Observer<List<Weather>>() {
             @Override
             public void onChanged(List<Weather> weathers) {
                 weatherList = weathers;
@@ -183,25 +252,35 @@ public class WeatherFragment extends Fragment {
             }
         });
 
-        weatherViewModel.getWeatherJSONLiveData().observe(this, new Observer<WeatherJSON>() {
+        weatherJSONLiveData=weatherViewModel.getWeatherJSONLiveData();
+        weatherJSONLiveData.observe(getViewLifecycleOwner(), new Observer<WeatherJSON>() {
             @Override
             public void onChanged(WeatherJSON weatherJSON) {
                 if (weatherJSON != null) {
-                    setDataView(weatherJSON);
                     //更新数据信息
                     Gson gson = new Gson();
                     String cityCode = weatherJSON.getCityInfo().getCitykey();
-                    Weather weather = new Weather(cityCode, DateUtils.dateToLong(weatherJSON.getTime()), gson.toJson(weatherJSON));
+                    Weather weatherTemp = new Weather(cityCode, DateUtils.dateToLong(weatherJSON.getTime()), gson.toJson(weatherJSON));
                     if (weatherList != null) {
                         for (Weather w : weatherList) {
                             if (w.getCityID().equals(cityCode)) {
-                                weatherViewModel.updateWeather(weather);
+                                weather=w;
+                                if (w.isStar()) {
+                                    setDataView(weatherJSON, true);
+                                    weatherTemp.setStar(true);
+                                }
+                                else
+                                    setDataView(weatherJSON,false);
+                                weatherViewModel.updateWeather(weatherTemp);
                                 Log.e("getWeatherJSONLiveData", "更新天气数据");
                                 Toast.makeText(getContext(), "更新天气数据", Toast.LENGTH_SHORT).show();
                                 return;
                             }
                         }
-                        weatherViewModel.insertWeather(weather);
+                        setDataView(weatherJSON,false);
+                        weather=weatherTemp;
+                        weatherTemp.setStar(false);
+                        weatherViewModel.insertWeather(weatherTemp);
                         Log.e("getWeatherJSONLiveData", "插入天气数据");
                         Toast.makeText(getContext(), "插入天气数据", Toast.LENGTH_SHORT).show();
                     }
@@ -209,10 +288,11 @@ public class WeatherFragment extends Fragment {
             }
         });
 
-                /*
+        /*
         观察城市代码变化，如果数据库有且时间不超过半个小时，从数据库中获取，否则，从api获取，并更新数据库
          */
-        weatherViewModel.getCityCodeLive().observe(this, new Observer<String>() {
+        cityCode=weatherViewModel.getCityCodeLive();
+        cityCode.observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 Log.e("getCityCodeLive", s);
@@ -229,7 +309,7 @@ public class WeatherFragment extends Fragment {
                                 long dateInDB = DateUtils.dateToLong(weatherNow.getTime());
                                 //如果数据没有过时,否则从网络中获取
                                 if (c.getTimeInMillis() <= dateInDB) {
-                                    setDataView(weatherNow);
+                                    setDataView(weatherNow,w.isStar());
                                     Log.e("cityCode_observe", "从数据库中获取数据");
                                     Toast.makeText(getContext(), "从数据库中获取数据", Toast.LENGTH_SHORT).show();
                                     return;
@@ -247,14 +327,13 @@ public class WeatherFragment extends Fragment {
                 }
             }
         });
-        //默认为北京-朝阳区
-        weatherViewModel.setCityCode("101010300");
     }
 
     //绑定控件
     private void initView() {
         parent=getActivity().findViewById(R.id.textView_parent);
         city = getActivity().findViewById(R.id.textView_city);
+        imageView_star=getActivity().findViewById(R.id.imageView_star);
         city.setFocusable(true);
         city.setFocusableInTouchMode(true);
         city.requestFocus();
@@ -275,10 +354,14 @@ public class WeatherFragment extends Fragment {
         notice = getActivity().findViewById(R.id.textView_notice);
     }
 
-    private void setDataView(WeatherJSON weatherJSON) {
+    private void setDataView(WeatherJSON weatherJSON,boolean star) {
         List<WeatherJSON.DataBean.ForecastBean> weatherListForecast;
         parent.setText(weatherJSON.getCityInfo().getParent());
         city.setText(weatherJSON.getCityInfo().getCity());
+        if (star)
+            imageView_star.setImageDrawable(getActivity().getDrawable(R.drawable.ic_star_black_24dp));
+        else
+            imageView_star.setImageDrawable(getActivity().getDrawable(R.drawable.ic_star_border_black_24dp));
         updateTime.setText("更新时间:" + weatherJSON.getCityInfo().getUpdateTime());
         shidu.setText("湿度:" + weatherJSON.getData().getShidu());
         pm25.setText("PM2.5:" + weatherJSON.getData().getPm25() + "");

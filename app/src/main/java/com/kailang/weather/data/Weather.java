@@ -11,6 +11,7 @@ public class Weather {
     private String cityID;
     private long lastTime;
     private String jsonStr;
+    private boolean isStar;
 
     public Weather(){
 
@@ -44,5 +45,13 @@ public class Weather {
 
     public void setJsonStr(String jsonStr) {
         this.jsonStr = jsonStr;
+    }
+
+    public boolean isStar() {
+        return isStar;
+    }
+
+    public void setStar(boolean star) {
+        isStar = star;
     }
 }

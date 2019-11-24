@@ -9,8 +9,11 @@
         app:showAsAction="always">
     </item>
     <item
+        android:id="@+id/app_bar_star_city"
+        android:title="收藏的城市"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/app_bar_search_id"
         android:title="输入城市id"
-        android:icon="@drawable/ic_search_black_24dp"
         app:showAsAction="never" />
 </menu>

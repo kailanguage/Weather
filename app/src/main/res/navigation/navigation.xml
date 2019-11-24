@@ -8,6 +8,19 @@
     <fragment
         android:id="@+id/weatherFragment"
         android:name="com.kailang.weather.WeatherFragment"
-        android:label="fragment_weather"
-        tools:layout="@layout/fragment_weather" />
+        android:label="weather"
+        tools:layout="@layout/fragment_weather" >
+        <action
+            android:id="@+id/action_weatherFragment_to_cityStarFragment"
+            app:destination="@id/cityStarFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/cityStarFragment"
+        android:name="com.kailang.weather.CityStarFragment"
+        android:label="收藏的城市"
+        tools:layout="@layout/fragment_star_city_list" >
+        <action
+            android:id="@+id/action_cityStarFragment_to_weatherFragment"
+            app:destination="@id/weatherFragment" />
+    </fragment>
 </navigation>
