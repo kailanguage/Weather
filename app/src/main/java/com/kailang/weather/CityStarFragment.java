@@ -88,7 +88,7 @@ public class CityStarFragment extends Fragment {
                         } else {
                             recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
                         }
-                        recyclerView.setAdapter(new MyItemRecyclerViewAdapter(weatherList, mListener));
+                        recyclerView.setAdapter(new CityStarAdapter(weatherList, mListener));
                     }
                 }
 

@@ -174,7 +174,7 @@ public class WeatherFragment extends Fragment {
 
     }
 
-
+    //初始数据
     private void initDate() {
         Bundle bundle=getArguments();
         String cityID="";
@@ -354,6 +354,7 @@ public class WeatherFragment extends Fragment {
         notice = getActivity().findViewById(R.id.textView_notice);
     }
 
+    //加载天气数据
     private void setDataView(WeatherJSON weatherJSON,boolean star) {
         List<WeatherJSON.DataBean.ForecastBean> weatherListForecast;
         parent.setText(weatherJSON.getCityInfo().getParent());
@@ -408,7 +409,6 @@ public class WeatherFragment extends Fragment {
                 swipeRefreshLayout.setBackground(getActivity().getDrawable(R.drawable.ic_background_f));
         }
     }
-
 
     //初始化城市数据
     private void initCityData() {

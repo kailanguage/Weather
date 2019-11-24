@@ -19,12 +19,12 @@ import java.util.List;
  * specified {@link OnListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyItemRecyclerViewAdapter.ViewHolder> {
+public class CityStarAdapter extends RecyclerView.Adapter<CityStarAdapter.ViewHolder> {
 
     private final List<Weather> mValues;
     private final OnListFragmentInteractionListener mListener;
 
-    public MyItemRecyclerViewAdapter(List<Weather> items, OnListFragmentInteractionListener listener) {
+    public CityStarAdapter(List<Weather> items, OnListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }
